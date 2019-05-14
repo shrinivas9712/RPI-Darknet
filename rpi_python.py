@@ -9,6 +9,7 @@ import time
 camera = PiCamera()
 camera.resolution = (512, 512)
 camera.exposure_mode = 'sports'
+camera.vflip = True
 
 camera.capture('/tmp/in.jpg')
 sleep(0.1)
