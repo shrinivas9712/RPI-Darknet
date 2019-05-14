@@ -1,3 +1,5 @@
+NNPACK
+ninja
 *.weights
 *.o
 *.dSYM
