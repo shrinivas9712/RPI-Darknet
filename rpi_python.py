@@ -1,10 +1,12 @@
 from picamera import PiCamera
 from subprocess import Popen, PIPE
-import threading
 from time import sleep
 import os, fcntl
 import time
 
+from UDPComms import Publisher
+
+pub = Publisher(8390)
 
 camera = PiCamera()
 camera.resolution = (512, 512)
@@ -36,13 +38,24 @@ while True:
     try:
         stdout = yolo_proc.stdout.read()
         if stdout is not None:
-            print "STDout", stdout
-        # if stdout is None:
-        #     continue
-        if 'BBOX' in stdout:
-            print stdout
+            print "STDOUT", stdout
+
         if 'Enter Image Path' in stdout:
             camera.capture('/tmp/in.jpg')
             yolo_proc.stdin.write('/tmp/in.jpg\n')
-    except Exception:
+
+            msg = []
+            if 'BBOX' in stdout:
+                lines = stdout.split('\n')
+                markers = (line for line in lines if 'BBOX' in line)
+                for mark in markers:
+                    _,x,y,w,h,prob = mark.split(' ')
+                    msg.append({'x':x,
+                        'y':y,
+                        'w':w,
+                        'h':h,
+                        'prob':prob})
+            pub.send(msg)
+
+    except IOError:
         pass
